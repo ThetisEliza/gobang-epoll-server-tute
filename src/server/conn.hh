@@ -35,7 +35,7 @@ public:
 
 typedef InetAddress INET_ADDR;
 
-const INET_ADDR SERVER_ADDR = INET_ADDR("127.0.0.1", 8899);
+const INET_ADDR SERVER_ADDR = INET_ADDR("10.0.4.2", 8899);
 
 #endif
 
