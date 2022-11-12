@@ -27,3 +27,4 @@ tutorial for epoll and built with an interactive gobang competition
 
 1. how to use unix kernel to build a dump server
 2. how to use epoll to callback a interrupted operation
+3. how to use pipeline to send data between pids

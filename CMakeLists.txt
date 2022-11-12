@@ -11,7 +11,7 @@ aux_source_directory(./src/utils UTILS)
 add_executable(ges ../src/main.cc ${SRC} ${UTILS})
 add_executable(test ../src/test.cc ${SRC} ${UTILS})
 
-add_executable(tute1 ../tutes/1.tutes-build-a-dump-server.cc ${SRC} ${UTILS})
+# add_executable(tute1 ../tutes/1.tutes-build-a-dump-server.cc ${SRC} ${UTILS})
 
 # target_include_directories(server PRIVATE ${PROJECT_SOURCE_DIR}/inc)
 # target_link_libraries(server PRIVATE ${PROJECT_SOURCE_DIR}/lib/libfuture_static.a)
