@@ -6,44 +6,45 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <memory.h>
+#include <sys/uio.h>
+#include <sys/sendfile.h>
+#include <syslog.h>
+#include <pthread.h>
 
-#include "../src/server/conn.hh"
 
-int pipe_default[2];
 
-int main()
+void *tfn(void *arg)
 {
-    pid_t pid;
-    char buffer[32];
-    if (pipe(pipe_default) < 0) {
-        std::cout << "Failed to create pipe!\n" << std::endl;
-    }
-    std::cout << "r_pid:" << pipe_default[0] 
-        << " w_rid:" << pipe_default[1] << std::endl;
+    long int i;
+    i = (long int)arg;
+    if (i == 2) 
+        pthread_exit(NULL);
+    sleep(i);
+    printf("I've slept for %lu sec. tfn--pid=%d, tid=%lu\n", i, getpid(), pthread_self());
+    return (void*)0;
+}
 
-    if(0 == (pid = fork()))
-    {
-        printf("This is child process\n");
-        std::cout << "child pipe close write pipe" << std::endl;
-        close(pipe_default[1]);
-        sleep(5);
-        if(read(pipe_default[0], buffer, 32) > 0)
-        {
-            printf("Receive data from server, %s!\n", buffer);
-        }
-        close(pipe_default[0]);
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
+int main(int argc, char* argv[])
+{
+    printf("%d\n", sizeof(void*));
+    printf("%d\n", sizeof(long long int));
+    printf("%d\n", sizeof(long int));
+    printf("%d\n", sizeof(int));
+    long long int n = 5, i;
+    pthread_t tid;
+    if (argc == 2)
+        n = atoi(argv[1]);
+    for(int i=0; i<n; i++) {
+        int ret = pthread_create(&tid, NULL, tfn, (void *)i);
     }
-    else
-    {
-        printf("This is parent process\n");
-        std::cout << "child pipe close read pipe" << std::endl;
-        close(pipe_default[0]);
-        if(-1 != write(pipe_default[1], "hello", strlen("hello")))
-        {
-            printf("Send data to client, hello!\n");
-        }
-        close(pipe_default[1]);
-        
-        waitpid(pid, NULL, 0);
-    }
+    sleep(n);
+    printf("I've slept for %lu sec. main--pid=%d, tid=%lu\n", n, getpid(), pthread_self());
+    return 0;
 }
