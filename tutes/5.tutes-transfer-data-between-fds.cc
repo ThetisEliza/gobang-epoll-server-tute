@@ -10,8 +10,10 @@
 #include <memory.h>
 #include <sys/uio.h>
 #include <sys/sendfile.h>
-#include <syslog.h>
 
+int pipes[2];
+
+#define BUFFER_SIZE 1024
 
 /**
  * @brief This is a tutorial that showing you how to use `sendfile` to send data to a designated file descriptor
@@ -20,14 +22,15 @@
  */
 int main()
 {
+    char file_name[] = "tmp/a.txt";
 
-    setlogmask( LOG_UPTO(LOG_NOTICE) );
+    int file_desc = open(file_name, O_RDONLY);
     
-    openlog(NULL, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    struct stat stat_buf;
+    fstat(file_desc, &stat_buf);
+    sendfile(STDOUT_FILENO, file_desc, NULL, stat_buf.st_size);
 
-    syslog(LOG_NOTICE, "Hello world");
+    close(file_desc);
     
-    closelog();
-
     return 0;
 }
