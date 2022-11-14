@@ -13,16 +13,26 @@
 #include <syslog.h>
 #include <pthread.h>
 
-
+int var=100;
+int a = 1;
 
 void *tfn(void *arg)
 {
     long int i;
     i = (long int)arg;
+    
     if (i == 2) 
         pthread_exit(NULL);
+    if (i == 3) {
+        pthread_cancel(pthread_self());
+        a++;
+    }        
+    printf("tid:%lu a: %d\n", pthread_self(), a);
     sleep(i);
-    printf("I've slept for %lu sec. tfn--pid=%d, tid=%lu\n", i, getpid(), pthread_self());
+    var++;
+    printf("I've slept for %lu sec. tfn--pid=%d, tid=%lu, check var%d\n", 
+        i, getpid(), pthread_self(), var);
+    
     return (void*)0;
 }
 
@@ -33,10 +43,6 @@ void *tfn(void *arg)
  */
 int main(int argc, char* argv[])
 {
-    printf("%d\n", sizeof(void*));
-    printf("%d\n", sizeof(long long int));
-    printf("%d\n", sizeof(long int));
-    printf("%d\n", sizeof(int));
     long long int n = 5, i;
     pthread_t tid;
     if (argc == 2)
@@ -45,6 +51,7 @@ int main(int argc, char* argv[])
         int ret = pthread_create(&tid, NULL, tfn, (void *)i);
     }
     sleep(n);
-    printf("I've slept for %lu sec. main--pid=%d, tid=%lu\n", n, getpid(), pthread_self());
+    printf("I've slept for %lu sec. main--pid=%d, tid=%lu, check var%d\n", 
+        n, getpid(), pthread_self(), var);
     return 0;
 }
