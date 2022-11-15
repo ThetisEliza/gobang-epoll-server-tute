@@ -1,7 +1,7 @@
 <!--
  * @Date: 2022-11-14 19:37:53
  * @LastEditors: ThetisEliza wxf199601@gmail.com
- * @LastEditTime: 2022-11-15 16:40:18
+ * @LastEditTime: 2022-11-15 17:50:23
  * @FilePath: /gobang-epoll-server-tute.hub/README.md
 -->
 # gobang-epoll-server-tute
@@ -33,7 +33,7 @@ tutorial for epoll and built with an interactive gobang competition
 
 1. how to use unix kernel to build a dump server
 2. how to use epoll to callback a interrupted operation
-3. how to use pipeline to send data between pids
+3. how to use pipeline to send data between fids
 
 ### finish serveral tutes of functions 11.15
 

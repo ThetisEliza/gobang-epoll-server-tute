@@ -3,7 +3,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <iostream>
-
+#include <net/if.h>
+#include <sys/ioctl.h>
 #include "conn.hh"
 #include "../utils/utils.hh"
 
@@ -60,10 +61,35 @@ int Socket::GetFd()
     return fd;
 }
 
+INET_ADDR Socket::GetLocalHost()
+{
+    
+    struct ifconf ifc;
 
+    char buf[1024]={0};
+	char ipbuf[20]={0};
+	struct ifreq *ifr;
 
-#define MAX_EVENT_NUM 10000
+    ifc.ifc_len = 1024;
+	ifc.ifc_buf = buf;
+    int i = 0;
+    int socketfd = socket(AF_INET, SOCK_DGRAM, 0);
+    ioctl(socketfd, SIOCGIFCONF, &ifc);
+    ifr = (struct ifreq*)buf;
+    for(i=(ifc.ifc_len/sizeof(struct ifreq)); i > 0; i--)
+	{
+		printf("net name: %s\n",ifr->ifr_name);
+		inet_ntop(AF_INET,&((struct sockaddr_in *)&ifr->ifr_addr)->sin_addr,ipbuf,20);
+		printf("ip: %s \n",ipbuf);
+        //if(strcmp(ipbuf,"127.0.0.1") != 0)
+        //    printf("ip: %s \n",ipbuf);
+		ifr = ifr +1;
+	}
+    uint16_t port = 8899;
+    return INET_ADDR(ipbuf, port);
+}
 
+const INET_ADDR SERVER_ADDR = INET_ADDR(IP, PORT);
 
 void AddFd(int epollFd, int fd, bool oneshot)
 {
@@ -97,9 +123,10 @@ void Server::Run()
 
     // MASTER thread register socket fd, listen fd get ready when new connection comes
     AddFd(epollFd, serverSocket.GetFd(), false);
-    
-    while (1) {
+    Socket clientSocket;
 
+    while (1) {
+        
         int num = epoll_wait(epollFd, events, MAX_EVENT_NUM, -1);
 
         for(int i=0; i<num; i++) {
@@ -107,15 +134,15 @@ void Server::Run()
             std::cout << "Check socket fd:" << socketFd << std::endl;  
             
             if (socketFd == serverSocket.GetFd()) {
-                std::cout << "New connection event at server socket" << events[i].data.fd << std::endl;    
+                std::cout << "New connection event at server socket" << std::endl;    
                 /* process new connection */
 
                 INET_ADDR connectionAddr; // I feel this addr useless, no change after socket accept, why?
                 // std::cout << "Prepare new socket at:" << connectionAddr.ToString() << std::endl;
 
-                Socket clientSocket = serverSocket.Accept(&connectionAddr); // A socket is just a FILE DESCRIBER in linux kernel.
+                clientSocket = serverSocket.Accept(&connectionAddr); // A socket is just a FILE DESCRIBER in linux kernel.
                 /* Accept connection on new socket*/
-                std::cout << "New connection on fd:" << clientSocket.GetFd() << std::endl;
+                
                 AddFd(epollFd, clientSocket.GetFd(), true);            
                 std::cout << "Connection created on fd:" << clientSocket.GetFd() << std::endl;
             }
@@ -123,7 +150,7 @@ void Server::Run()
                 std::cout << "Server closed connect" << std::endl;
                 /* what does this mean? Server actively close connection? */
             }
-            else if ( events[i].events & EPOLLIN ) {
+            else if ( events[i].events & (EPOLLIN | EPOLLET) ) {
                 std::cout << "Server received data" << std::endl;
             }
             else if ( events[i].events & EPOLLOUT ){
